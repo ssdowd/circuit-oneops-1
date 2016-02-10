@@ -32,10 +32,18 @@ conn = Fog::Compute.new({
 rfcCi = node[:workorder][:rfcCi]
 Chef::Log.debug("rfcCi attrs:"+rfcCi[:ciAttributes].inspect.gsub("\n"," "))
 
+security_domains = []
 nsPathParts = rfcCi[:nsPath].split("/")
 security_domain = nsPathParts[3]+'.'+nsPathParts[2]+'.'+nsPathParts[1]
+security_domains << security_domain
 Chef::Log.debug("security domain: "+ security_domain)
 
+node.workorder.payLoad["DependsOn"].each do |dep|
+  if dep["ciClassName"] =~ /Secgroup/
+    security_domains << dep["ciAttributes"][:group_name]
+    Chef::Log.debug("security domain add: "+ dep["ciAttributes"][:group_name])
+  end
+end
 
 # size / flavor
 sizemap = JSON.parse( token[:sizemap] )
@@ -198,7 +206,7 @@ if server.nil?
                  :image_id => image.id,
                  :flavor_id => size_id,
                  :key_name => node.kp_name,
-                 :groups => [security_domain],
+                 :groups => security_domains,
                  :availability_zone => availability_zone,
                  :block_device_mapping => block_device_mapping,
                  :tags => {:Name => node.server_name }
