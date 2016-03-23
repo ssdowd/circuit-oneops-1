@@ -20,25 +20,18 @@ if @availability_mode == 'single'
   pass = cba['adminpassword']
   port = cba['port']
 else
-
-  # dynamic payload defined in the pack to get the resources
-  dependencies = node.workorder.payLoad.cm
-  dependencies.each do |depends_on|
-    class_name = depends_on["ciClassName"].downcase.gsub("bom\.","")
-    Chef::Log.info("class_name:#{class_name}")
-    if class_name == "couchbase"
-      if depends_on["ciAttributes"].has_key?("adminuser")
-        user = depends_on["ciAttributes"]["adminuser"]
-      end
-
-      if depends_on["ciAttributes"].has_key?("adminpassword")
-        pass = depends_on["ciAttributes"]["adminpassword"]
-      end
-
-      if depends_on["ciAttributes"].has_key?("port")
-        port = depends_on["ciAttributes"]["port"]
-      end
-    end
+  realizedAttrs = node.workorder.payLoad[:RealizedAs][0].ciAttributes
+  if realizedAttrs.has_key?("adminuser")
+    user = realizedAttrs["adminuser"]
+  end
+  if realizedAttrs.has_key?("adminuser")
+    user = realizedAttrs["adminuser"]
+  end
+  if realizedAttrs.has_key?("adminpassword")
+    pass = realizedAttrs["adminpassword"]
+  end
+  if realizedAttrs.has_key?("port")
+    port = realizedAttrs["port"]
   end
 end
 
